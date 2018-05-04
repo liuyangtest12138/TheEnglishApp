@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>AUI快速完成布局</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <style type="text/css">
+        .goods-title {
+            color: #757575 !important;
+        }
+        .goods-price {
+            color: #666666 !important;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <section class="aui-content">
+        <div class="aui-card-list aui-border-t aui-border-b">
+            <div class="aui-card-list-header aui-card-list-user">
+                    用户昵称：
+                <div class="aui-card-list-user-name">
+                    <input type="text" placeholder="请输入要修改的昵称.." id="userName"/>
+                </div>
+            </div>
+        </div>
+        <div class="aui-card-list aui-border-t aui-border-b">
+            <div class="aui-card-list-header aui-card-list-user">
+                    用户真实姓名：
+                <div class="aui-card-list-user-name">
+                    <input type="text" placeholder="请输入要修改的昵称.." id="userDealName"/>
+                    </div>
+            </div>
+        </div><div class="aui-card-list aui-border-t aui-border-b">
+            <div class="aui-card-list-header aui-card-list-user">
+                    用户邮箱：
+                <div class="aui-card-list-user-name">
+                    <input type="text" placeholder="请输入要修改的邮箱.." id="email"/>
+                    </div>
+            </div>
+        </div><div class="aui-card-list aui-border-t aui-border-b">
+            <div class="aui-card-list-header aui-card-list-user">
+                    母语：
+                <div class="aui-card-list-user-name">
+                    <input type="text" placeholder="请输入母语.." id="mother"/>
+                  </div>
+            </div>
+        </div>
+      </div><div class="aui-card-list aui-border-t aui-border-b">
+          <div class="aui-card-list-header aui-card-list-user">
+                  个人简介：
+              <div class="aui-card-list-user-name">
+                  <textarea placeholder="这个人很懒什么也没留下.." id="content"></textarea>
+              </div>
+          </div>
+      </div>
+      <center><button class="aui-btn aui-btn-info" onclick="pushUser()">提交</button></center>
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js" ></script>
+<script type="text/javascript">
+var urlHeader = getCookie('urlHeader');
+var userPhone = getCookie('userPhone');
+var id;
+    apiready = function () {
+      queryData();
+    }
+    function getCookie(key) {
+        var cookieArr = document.cookie.split('; ');
+        for(var i = 0; i < cookieArr.length; i++) {
+            var arr = cookieArr[i].split('=');
+            if(arr[0] === key) {
+                return arr[1];
+            }
+        }
+        return false;
+    }
+    function queryData(){
+      api.ajax({
+        url: urlHeader+'/page/proxy/queryOneUser',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values:{ //you参数
+                  userPhone: userPhone
+            }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            id = ret.result.id;
+            $api.attr($api.byId('userName'),'placeholder', ret.result.userName);
+            $api.attr($api.byId('userDealName'),'placeholder', ret.result.userDealName);
+            $api.attr($api.byId('email'),'placeholder', ret.result.email);
+            $api.attr($api.byId('mother'),'placeholder', ret.result.motherLanguageName);
+            $api.attr($api.byId('content'),'placeholder', ret.result.userContent);
+          }
+        }
+    })
+    }
+
+    function pushUser(){
+      var userName = $api.val($api.byId('userName'));
+      var userDealName = $api.val($api.byId('userDealName'));
+      var email = $api.val($api.byId('email'));
+      var mother = $api.val($api.byId('mother'));
+      var content = $api.val($api.byId('content'));
+      api.ajax({
+        url: urlHeader+'/page/proxy/modifyOneUser',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values:{ //you参数
+                  id: id,
+                  userPhone: userPhone,
+                  userName: userName,
+                  userDealName: userDealName,
+                  email: email,
+                  motherLanguageName: mother,
+                  userContent: content
+            }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            window.location.reload();
+
+          }
+        }
+    })
+    }
+</script>
+</html>

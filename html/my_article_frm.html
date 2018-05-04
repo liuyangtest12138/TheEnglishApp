@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>Hello APP</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+	<style>
+        .text-light {
+            color: #999 !important;
+        }
+        .aui-radio {
+            width: 1rem;
+            height: 1rem;
+        }
+	</style>
+</head>
+<body>
+    <section class="aui-content" id="mainPage">
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+var urlHeader = getCookie('urlHeader');
+var pageBody = {pageNum: 1,pageSize: 10};
+var index = 0;
+var userPhone = getCookie('userPhone');
+    apiready = function(){
+        api.parseTapmode();
+        queryData();
+        api.addEventListener({
+            name:'scrolltobottom',
+            extra:{ threshold: 10 }
+        },function(ret,err){
+            // ajax 在已经加载列表的基础上，请求加载下一页页面
+            pageBody.pageNum = pageBody.pageNum+1;
+            queryData();
+        });
+    };
+    function getCookie(key) {
+        var cookieArr = document.cookie.split('; ');
+        for(var i = 0; i < cookieArr.length; i++) {
+            var arr = cookieArr[i].split('=');
+            if(arr[0] === key) {
+                return arr[1];
+            }
+        }
+        return false;
+    }
+    function del(id,index){
+      api.ajax({
+        url: urlHeader+'/page/owner/delMyArticle',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values:{ //you参数
+                  id: id
+            }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            $api.remove($api.byId('article'+index));
+          }
+        }
+    })
+    }
+    function queryData(){
+      api.ajax({
+        url: urlHeader+'/page/owner/myArticle',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values:{ //you参数
+                  pageNum: pageBody.pageNum,
+                  pageSize: pageBody.pageSize,
+                  userPhone: userPhone
+            }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            var list = ret.result;
+            for(var i = 0;i<list.length;i++){
+              var item = list[i];
+              $api.append($api.byId('mainPage'),'<div class="aui-card-list" id="article'+index+'"><div class="aui-card-list-header aui-font-size-14" onclick="toArticleText()">'+item.title+'</div><div class="aui-card-list-content-padded aui-padded-t-0 text-light">'+item.userName+
+                  '</div><div class="aui-card-list-footer aui-border-t"><div onclick="toArticleText(\''+item.contentPath+'\')"><img src="'+urlHeader+'/images/'+item.titleImage+
+                  '"></img></div><div onclick="del('+item.id+','+index+')"><i class="aui-iconfont aui-icon-trash aui-margin-r-5 aui-margin-l-15 aui-font-size-14"></i>删除</div></div></div>');
+              index = index + 1;
+            }
+            if(list.length == 0){
+              pageBody.pageNum = pageBody.pageNum - 1;
+            }
+            console.log("数据加载完成");
+          }
+        }
+    })
+    }
+    function toArticleText(item){
+      console.log(item);
+      api.openWin({
+
+          name: 'article_text_win',
+          url: './article_text_win.html',
+          pageParam: {
+              contentPath: item
+          }
+      });
+    }
+</script>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>Hello APP</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+	<style>
+        .text-light {
+            color: #999 !important;
+        }
+        .aui-radio {
+            width: 1rem;
+            height: 1rem;
+        }
+	</style>
+</head>
+<body>
+    <section class="aui-content">
+        <div class="aui-card-list" id="testChange">
+            <div class="aui-card-list-header aui-font-size-14">
+              <select id="testNum">
+                <option value="1" style="color: #b6b6b6" disabled selected>点此选择测试数量</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div class="aui-card-list-footer aui-border-t">
+                    <div class="aui-btn aui-btn-block aui-btn-info aui-btn-sm" onClick="testBegin()" tapmode>开始</div>
+            </div>
+        </div>
+        <div class="aui-card-list" style="display:none;" id="testing">
+            <div class="aui-card-list-header aui-font-size-14" id="wordContent">
+                喜欢
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                <input type="text" placeholder="请输入答案..." id="wordResult"/>
+            </div>
+            <div class="aui-card-list-footer aui-border-t" id="caozuo">
+                <div id="buttonDiv">
+                    <button class="aui-btn-info aui-btn-sm" onclick="checkWord()">提交</button>
+                    <button class="aui-btn-info aui-btn-sm">跳过</button>
+                </div>
+            </div>
+        </div>
+        <div class="aui-card-list" style="display:none;" id="resultDiv">
+            <div class="aui-card-list-header aui-font-size-14">
+                测试成绩如下:
+            </div>
+            <div class="aui-card-list-content-padded aui-padded-t-0 text-light">
+                总分:&nbsp;&nbsp;&nbsp;<span id="totle"></span>分</br>
+                正确:&nbsp;&nbsp;&nbsp;<span id="trueNum"></span>分</br>
+                错误:&nbsp;&nbsp;&nbsp;<span id="errorNum"></span>分
+            </div>
+        </div>
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+var urlHeader = getCookie('urlHeader');
+var testList;
+var indexWord;
+var totle;
+var trueNum = 0;
+var errorNum = 0;
+function getCookie(key) {
+    var cookieArr = document.cookie.split('; ');
+    for(var i = 0; i < cookieArr.length; i++) {
+        var arr = cookieArr[i].split('=');
+        if(arr[0] === key) {
+            return arr[1];
+        }
+    }
+    return false;
+}
+    apiready = function(){
+        api.parseTapmode();
+    };
+    function testBegin(){
+        totle = $api.val($api.byId('testNum'));
+        if(totle == 1){
+          alert("请选择测试数量");
+          return;
+        }
+        api.ajax({
+          url: urlHeader+'/page/owner/wordTestBegin',
+          method: 'post',
+          dataType: 'json',
+          returnAll: false,
+          data: {
+              values:{ //you参数
+                    wordTotle: totle
+              }
+          }
+      }, function(ret, err) {
+          if (ret) {
+            if(ret.code != 200){
+              console.log(ret.code);
+              alert(ret.message);
+            }else{
+              $api.attr($api.byId('testing'),'style','display:block;');
+              $api.attr($api.byId('testChange'),'style','display:none;');
+              testList = ret.result;
+              if(testList.length < totle){
+                alert("测试版本单词数目不足，本次测试数目为"+testList.length);
+                totle = testList.length;
+              }
+              randomWord();
+            }
+          }
+      })
+    }
+    function checkWord(){
+      var result = $api.val($api.byId('wordResult'));
+      if(indexWord.wordContent == result){
+        trueNum = trueNum + 1;
+        if(!checkTotle()){
+          alert("正确!点击ok挑战下一个");
+          randomWord();
+        }
+      }else{
+        errorNum = errorNum + 1;
+        if(!checkTotle()){
+          alert("错误!再接再厉!点击ok挑战下一个");
+          randomWord();
+        }
+      }
+    }
+    function randomWord(){
+      var i = Math.round(Math.random() * (testList.length-1));
+      console.log(i);
+      indexWord = testList[i];
+      console.log(indexWord);
+      testList.splice(i,1);
+      console.log(testList.length);
+      $api.text($api.byId('wordContent'),indexWord.wordChinese);
+    }
+    function checkTotle(){
+      if(trueNum + errorNum == totle){
+        $api.remove($api.byId('buttonDiv'));
+        $api.append($api.byId('caozuo'), '<div id="buttonDiv"><button class="aui-btn-info aui-btn-sm" onclick="pushResult()">查看成绩并上传</button></div>');
+        return true;
+      }else {
+        return false;
+      }
+    }
+
+    function pushResult(){
+      api.ajax({
+        url: urlHeader+'/page/owner/pushResult',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values:{ //you参数
+                  wordTotle: totle,
+                  userPhone: '18600787140',
+                  trueNum: trueNum,
+                  errorNum: errorNum
+            }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            $api.attr($api.byId('resultDiv'),'style','display:block;');
+            $api.text($api.byId('totle'),totle);
+            $api.text($api.byId('trueNum'),trueNum);
+            $api.text($api.byId('errorNum'),errorNum);
+            $api.remove($api.byId('buttonDiv'));
+            $api.append($api.byId('caozuo'), '<div id="buttonDiv"><button class="aui-btn-info aui-btn-sm" onclick="reBegin()">重新开始</button></div>');
+          }
+        }
+    })
+    }
+    function reBegin(){
+      window.location.reload();
+    }
+</script>
+</html>

@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <style type="text/css">
+        #classify-list {
+            width: 5rem;
+            height: 100%;
+            background-color: #ffffff;
+            overflow-x: hidden;
+        }
+        #classify-list .aui-list {
+            overflow-y: scroll;
+        }
+        .aui-list .aui-list-item-title {
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="aui-bar aui-bar-nav" id="aui-header">
+        <a class="aui-btn aui-pull-left" tapmode onclick="closeWin()">
+            <span class="aui-iconfont aui-icon-left"></span>
+        </a>
+        <div class="aui-title">文章库</div>
+    </header>
+    <section class="aui-content" id="classify-list">
+        <ul class="aui-list aui-list-noborder">
+            <li class="aui-list-item" onclick="changeType(0)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div0">全部</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(1)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div1">科技</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(2)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div2">生活</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(3)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div3">自然</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(4)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div4">植物</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(5)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div5">动物</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(6)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div6">人际</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="changeType(7)">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-title" id="div7">名句</div>
+                </div>
+            </li>
+        </ul>
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+    apiready = function(){
+        api.parseTapmode();
+        var header = $api.byId('aui-header');
+        $api.fixStatusBar(header);
+        var headerPos = $api.offset(header);
+        var body_h = $api.offset($api.dom('body')).h;
+        var classifyListH = $api.offset($api.byId('classify-list')).w;
+        document.getElementById("classify-list").style.height = api.winHeight-headerPos.h+"px";
+        api.openFrame({
+            name: 'article_frm',
+            url: 'article_frm.html',
+            bounces: true,
+            rect: {
+                x: classifyListH+5,
+                y: headerPos.h,
+                w: api.winWidth-classifyListH-5,
+                h: 'auto'
+            }
+        })
+    };
+    function changeType(type){
+      console.log(type);
+      api.sendEvent({
+          name: 'changeType1',
+          extra: {
+              type: type
+          }
+      });
+    }
+    function closeWin(){
+        api.closeWin({
+        });
+    }
+</script>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>AUI快速完成布局</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <style type="text/css">
+        .aui-list .aui-list-item-media {
+            width: 3rem;
+        }
+    </style>
+</head>
+<body style="">
+    <section class="aui-content" id="section">
+        <ul class="aui-list aui-media-list" id="dynamic">
+        </ul>
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js" ></script>
+<script type="text/javascript">
+var urlheader = getCookie('urlHeader');
+var pageBody = {pageNum: 1,pageSize: 4};
+var index = 0;
+var dynaType = 0;
+function getCookie(key) {
+    var cookieArr = document.cookie.split('; ');
+    for(var i = 0; i < cookieArr.length; i++) {
+        var arr = cookieArr[i].split('=');
+        if(arr[0] === key) {
+            return arr[1];
+        }
+    }
+    return false;
+}
+apiready = function(){
+        // 加载初始页面
+        console.log("加载")
+        searchData(2);
+        api.setRefreshHeaderInfo({
+        visible: true,
+        bgColor: '#f2f2f2',
+        textColor: '#4d4d4d',
+        textDown: '下拉刷新...',
+        textUp: '松开刷新...',
+        showTime: true
+    }, function (ret, err) {
+        pageBody.pageNum = 1;
+        index = 0;
+        // ajax 查询清空当前列表中的所有内容，并加载第一页
+        console.log(ret);
+        searchData(1);
+        api.refreshHeaderLoadDone();
+    });
+        api.addEventListener({
+            name:'scrolltobottom',
+            extra:{ threshold: 10 }
+        },function(ret,err){
+            // ajax 在已经加载列表的基础上，请求加载下一页页面
+            pageBody.pageNum = pageBody.pageNum+1;
+            searchData(2);
+        });
+        api.addEventListener({
+            name: 'dynaTypeChange'
+        }, function(ret, err){
+            if( ret ){
+                pageBody.pageNum = 1;
+                index = 0;
+                dynaType = ret.value.val;
+                searchData(1);
+            }
+        });
+
+};
+
+// 点击插叙按钮按照查询条件进行查询数据
+    function searchData(val){
+            // ajax 查询清空当前列表中的所有内容，按照查询条件并加载第一页
+            console.log(val);
+            var result;
+            api.ajax({
+              url: urlheader+'/page/dyna/theDynamic',
+              method: 'post',
+              dataType: 'json',
+              returnAll: false,
+              data: {
+                  values:{ //you参数
+                        userPhone: '18600787140',
+                        pageNum: pageBody.pageNum,
+                        pageSize: pageBody.pageSize,
+                        dynaType: dynaType
+                  }
+              }
+          }, function(ret, err) {
+              if (ret) {
+                console.log("数据获取成功");
+                console.log(ret.result.length);
+                result = ret.result;
+                if(val == 1){
+                  $api.remove($api.byId('dynamic'));
+                  $api.append($api.byId('section'), '<ul class="aui-list aui-media-list" id="dynamic"></ul>');
+                }
+                if(val == 2){
+                  if(ret.result.length == 0){
+                    pageBody.pageNum = pageBody.pageNum - 1;
+                  }
+                }
+                test(result,val);
+              }
+          });
+
+    }
+    function test(val,type){
+      for(var i=0;i<val.length;i++){
+          var dyna = val[i];
+          $api.append($api.byId('dynamic'), '<li class="aui-list-item"><div class="aui-media-list-item-inner" id="dynamic'+index+'"></div></li>');
+          $api.append($api.byId('dynamic'+index), '<div class="aui-list-item-media"><img src="'+urlheader+"/images/"+dyna.headImage+'"/></div>');
+          $api.append($api.byId('dynamic'+index), '<div class="aui-list-item-inner" id="dynamicRight'+index+'"></div>');
+          $api.append($api.byId('dynamicRight'+index), '<div class="aui-list-item-text"><div class="aui-list-item-title" style="color:#4c5276">'+dyna.userName+'</div></div>');
+          $api.append($api.byId('dynamicRight'+index), '<div class="aui-list-item-text" style="color:#333;">'+dyna.dynaContent+'</div>');
+          $api.append($api.byId('dynamicRight'+index), '<div class="aui-list-item-text"><div class="aui-row-padded" style="max-width:90%;" id="dynamicImg'+index+'"></div></div>');
+          var dynaImgs = dyna.imagesList;
+          for(var j=0;j<dynaImgs.length;j++){
+            $api.append($api.byId('dynamicImg'+index), '<div class="aui-col-xs-4"><img src="'+urlheader+"/images/"+dynaImgs[j]+'" /></div>');
+          }
+          $api.append($api.byId('dynamicRight'+index), '<p class="aui-margin-t-5 aui-font-size-12">山东潍坊</p>');
+          if(dyna.isCollect == 0){
+            console.log(dyna.id);
+            dyna.id = ''+dyna.id;
+            $api.append($api.byId('dynamicRight'+index), '<div class="aui-info aui-font-size-12" style="padding-top:0; padding-bottom:0"><div class="aui-info-item"></div><div class="aui-info-item"><i class="aui-iconfont aui-icon-star" style="color:#4c5276" onclick="dianzan('+index+',\''+dyna.id+'\','+dyna.isCollect+')" id="dianzan'+index+'"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="aui-iconfont aui-icon-comment"  style="color:#4c5276" onclick="pinglun(\''+dyna.id+'\','+index+')"></i></div></div>');
+          }else {
+            console.log(dyna.id);
+            dyna.id = ''+dyna.id;
+            $api.append($api.byId('dynamicRight'+index), '<div class="aui-info aui-font-size-12" style="padding-top:0; padding-bottom:0"><div class="aui-info-item"></div><div class="aui-info-item"><i class="aui-iconfont aui-icon-star" style="color:red;" onclick="dianzan('+index+','+',\''+dyna.id+'\','+dyna.isCollect+')" id="dianzan'+index+'"></i>&nbsp;&nbsp;&nbsp;&nbsp;<i class="aui-iconfont aui-icon-comment"  style="color:#4c5276" onclick="pinglun(\''+dyna.id+'\','+index+')"></i></div></div>');
+          }
+          var reviews = dyna.reviews;
+          for(var y=0;y<reviews.length;y++){
+            $api.append($api.byId('dynamicRight'+index), '<div class="aui-list-item-text"><div style="color:#4c5276">'+reviews[y].userName+':&nbsp;&nbsp;<span>'+reviews[y].dynaContent+'</span></div></div>');
+          }
+          index = index + 1;
+      }
+    }
+    function pinglun(id,index){
+      console.log("pinglun");
+      api.prompt({
+          buttons: ['评论', '取消']
+      }, function(ret, err){
+          if( ret ){
+            var text = ret.text;
+            if(ret.buttonIndex == 1){
+              api.ajax({
+                  url: urlheader+'/page/dyna/addTheDynamicComment',
+                  method: 'post',
+                  dataType: 'json',
+                  returnAll: false,
+                  data: {
+                      values: {
+                          userPhone: '18600787140',
+                          userName: '刘阳',
+                          dynaId: id,
+                          dynaContent: ret.text
+                      }
+                  }
+              },function(ret, err){
+                console.log(ret);
+                console.log(err);
+                  if (ret) {
+                    if(ret.result){
+                      $api.append($api.byId('dynamicRight'+index), '<div class="aui-list-item-text"><div style="color:#4c5276">'+'刘阳'+':&nbsp;&nbsp;<span>'+text+'</span></div></div>');
+                    }else{
+                      alert( JSON.stringify( ret.result ) );
+                    }
+                  } else {
+                      alert( JSON.stringify( err ) );
+                  }
+              });
+            }
+          }else{
+               alert( JSON.stringify( err ) );
+          }
+      });
+    }
+    function dianzan(index,id,isCollect){
+      console.log("dianzan");
+      if(isCollect == 1){
+        type = 2;
+      }else {
+        type = 1;
+      }
+      api.ajax({
+          url: urlheader+'/page/dyna/goodTheDynamic',
+          method: 'post',
+          dataType: 'json',
+          returnAll: false,
+          data: {
+              values: {
+                  userPhone: '18600787140',
+                  userName: '刘阳',
+                  dynaId: id,
+                  goodType: type
+              }
+          }
+      },function(ret, err){
+        console.log(ret);
+        console.log(err);
+          if (ret) {
+            if(ret.result){
+              if(isCollect == 1){
+                $api.attr($api.byId('dianzan'+index),'style','color:red;');
+                window.location.reload();
+              }else{
+                $api.attr($api.byId('dianzan'+index),'style','color:#4c5276;');
+                window.location.reload();
+              }
+            }else{
+              alert( JSON.stringify( ret.result ) );
+            }
+          } else {
+              alert( JSON.stringify( err ) );
+          }
+      });
+    }
+</script>
+</html>

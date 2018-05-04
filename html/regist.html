@@ -1,0 +1,104 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>注册</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+	<style>
+        .login-third {
+            margin-top: 3rem;
+        }
+	</style>
+</head>
+<body>
+    <section class="aui-content aui-margin-t-15">
+        <br/>
+        <center><h1>注册</h1></center>
+        <br/><br/>
+        <ul class="aui-list aui-form-list">
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                    <div class="aui-list-item-label aui-border-r color-orange">
+                        账号
+                    </div>
+                    <div class="aui-list-item-input aui-padded-l-10">
+                        <input type="number" pattern="[0-9]*" placeholder="输入手机号" id="userPhone" >
+                    </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                  <div class="aui-list-item-label aui-border-r color-orange">
+                      密码
+                  </div>
+                  <div class="aui-list-item-input aui-padded-l-10">
+                      <input type="password" placeholder="输入密码" id="password" >
+                  </div>
+                </div>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                  <div class="aui-list-item-label aui-border-r color-orange">
+                      昵称
+                  </div>
+                  <div class="aui-list-item-input aui-padded-l-10">
+                      <input type="text" placeholder="输入昵称" id="userName" >
+                  </div>
+                </div>
+            </li>
+        </ul>
+    </section>
+    <br/><br/>
+    <section class="aui-content-padded">
+        <div class="aui-btn aui-btn-block aui-btn-info aui-btn-sm" onClick="test()" tapmode>注册</div>
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript">
+var urlHeader = getCookie('urlHeader');
+    apiready = function(){
+        api.parseTapmode();
+    };
+    function setCookie(key, value, iDay) {
+      var oDate = new Date();
+      oDate.setDate(oDate.getDate() + iDay);
+      document.cookie = key + '=' + value + ';expires=' + oDate;
+    }
+    function test(){
+      var userPhone = $api.val($api.byId('userPhone'));
+      console.log(userPhone);
+      var password = $api.val($api.byId('password'));
+      var userName = $api.val($api.byId('userName'));
+
+      api.ajax({
+        url: urlHeader+'/page/proxy/userRegiste',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+            values:{ //you参数
+                  userPhone: userPhone,
+                  password: password,
+                  userName: userName
+            }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            setCookie('userPhone',ret.result.userPhone,15);
+            api.openWin({
+                name: 'index',
+                url: './index.html',
+                type: 'push'
+            });
+          }
+        }
+    })
+    }
+</script>
+</html>

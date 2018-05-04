@@ -1,0 +1,159 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0"/>
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>AUI快速完成布局</title>
+    <link rel="stylesheet" type="text/css" href="../css/aui.css" />
+    <style type="text/css">
+        .text-white {
+            color: #ffffff !important;
+        }
+        .aui-grid [class*=aui-col-] {
+            padding: 0.75rem 0;
+        }
+    </style>
+</head>
+<body>
+    <section class="aui-content">
+        <ul class="aui-list aui-list-in aui-margin-b-15">
+            <li class="aui-list-item" onclick="toWordList()">
+                <div class="aui-list-item-label-icon">
+                    <i class="aui-iconfont aui-icon-location aui-text-info"></i>
+                </div>
+                <div class="aui-list-item-inner aui-list-item-arrow">
+                    <div class="aui-list-item-title">单词库</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="toArticleList()">
+                <div class="aui-list-item-label-icon">
+                    <i class="aui-iconfont aui-icon-like aui-text-danger"></i>
+                </div>
+                <div class="aui-list-item-inner aui-list-item-arrow">
+                    <div class="aui-list-item-title">文章库</div>
+                </div>
+            </li>
+            <li class="aui-list-item" onclick="toTest()">
+                <div class="aui-list-item-label-icon">
+                    <i class="aui-iconfont aui-icon-image aui-text-info"></i>
+                </div>
+                <div class="aui-list-item-inner aui-list-item-arrow">
+                    <div class="aui-list-item-title">测试</div>
+                </div>
+            </li>
+        </ul>
+        <ul class="aui-list aui-form-list">
+          <div>
+          <select id="fanyiType">
+            <option value="1">英译汉</option>
+            <option value="2">汉译英</option>
+          </select>
+          </div>
+            <li class="aui-list-item">
+              <section class="aui-content-padded">
+                  <textarea placeholder="在这里输入要翻译的语句..." id="textArea"></textarea>
+              </section>
+            </li>
+            <li class="aui-list-item">
+                <div class="aui-list-item-inner">
+                  <section class="aui-content-padded">
+                      <textarea placeholder="在这里查看结果..." id="resultArea" disabled="disabled"></textarea>
+                  </section>
+                </div>
+            </li>
+        </ul>
+    </section>
+    <section class="aui-content-padded">
+        <div class="aui-btn aui-btn-block aui-btn-info aui-btn-sm" onClick="fanyi()" tapmode>翻译</div>
+    </section>
+</body>
+<script type="text/javascript" src="../script/api.js" ></script>
+<script type="text/javascript">
+var urlHeader = getCookie('urlHeader');
+function getCookie(key) {
+    var cookieArr = document.cookie.split('; ');
+    for(var i = 0; i < cookieArr.length; i++) {
+        var arr = cookieArr[i].split('=');
+        if(arr[0] === key) {
+            return arr[1];
+        }
+    }
+    return false;
+}
+    apiready = function () {
+    }
+    function fanyi(){
+      var type = $api.val($api.byId('fanyiType'));
+      var from;
+      var to;
+      var q = $api.val($api.byId('textArea'));
+      if(type == 1){
+        from = 'EN';
+        to = 'zh_CHS';
+      }else{
+        from = 'zh_CHS';
+        to = 'EN';
+      }
+      api.ajax({
+        url: urlHeader+'/page/comm/fanYI',
+        method: 'post',
+        dataType: 'json',
+        returnAll: false,
+        data: {
+          values: {
+            wordContent: q,
+            from: from,
+            to: to
+          }
+        }
+    }, function(ret, err) {
+        if (ret) {
+          if(ret.code != 200){
+            console.log(ret.code);
+            alert(ret.message);
+          }else{
+            console.log(ret);
+            var object = JSON.parse(ret.result);
+            var res = object.translation;
+            var query = '';
+            for(var i = 0;i< res.length;i++){
+              query = query + res[i] + ';  '
+            }
+            $api.text($api.byId('resultArea'),query);
+          }
+        }
+    })
+    }
+    function toWordList(){
+      api.openWin({
+          name: 'word_win',
+          url: './word_win.html',
+          pageParam: {
+              name: 'frame2'
+          }
+      });
+
+    }
+    function toArticleList(){
+      api.openWin({
+          name: 'article_win',
+          url: './article_win.html',
+          pageParam: {
+              name: 'frame2'
+          }
+      });
+
+    }
+    function toTest(){
+      api.openWin({
+          name: 'test_win',
+          url: './test_win.html',
+          pageParam: {
+              name: 'frame2'
+          }
+      });
+
+    }
+</script>
+</html>
